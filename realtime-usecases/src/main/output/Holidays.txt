@@ -1,0 +1,60 @@
+Requirement:
+
+I have a scenario subtracting the total number of days with the number of holidays in pyspark
+by using dataframes
+
+I have a table with dates  date1  date2 in one table and number of holidays in another table
+df1 = select date1,date2 ,ctry ,unixtimestamp(date2-date1) totalnumberofdays  - df2.holidays  from table A;
+
+df2 = select count(holiays)
+from table B
+where holidate >= 'date1'
+and holidate < = date2;
+and country = A.ctry
+
+Except country no other column is not a unique key
+
+For a particular order the dates are date 1 --26.12.2012  and date2---- 06.01.2013 in a country.
+Total number of days 06.01.203-26.12.2012 = 10
+
+I have to pass these above days  to get number of holidays .ie, suppose in India we get 2 holidays .
+
+So final result would be 10-2 = 8  .I have to do this in pyspark
+
++---+----------+----------+-------+------------+------------+--------+
+|id |date1     |date2     |country|parsed_date1|parsed_date2|daysdiff|
++---+----------+----------+-------+------------+------------+--------+
+|1  |26.12.2012|06.01.2013|IN     |2012-12-26  |2013-01-06  |11      |
+|2  |05.08.2020|29.10.2020|CN     |2020-08-05  |2020-10-29  |85      |
++---+----------+----------+-------+------------+------------+--------+
+
++---+------------+-------+-------------------+
+|hid|holiday_date|country|parsed_holiday_date|
++---+------------+-------+-------------------+
+|1  |30.12.2012  |IN     |2012-12-30         |
+|2  |31.12.2012  |IN     |2012-12-31         |
+|3  |01.01.2013  |IN     |2013-01-01         |
+|4  |25.10.2020  |CN     |2020-10-25         |
+|5  |01.01.2013  |CN     |2013-01-01         |
++---+------------+-------+-------------------+
+
++------------+------------+-------+--------+
+|parsed_date2|parsed_date1|country|holidays|
++------------+------------+-------+--------+
+|2013-01-06  |2012-12-26  |IN     |3       |
+|2020-10-29  |2020-08-05  |CN     |1       |
++------------+------------+-------+--------+
+
++---+----------+----------+-------+------------+------------+--------+------------+------------+-------+--------+------------+
+|id |date1     |date2     |country|parsed_date1|parsed_date2|daysdiff|parsed_date2|parsed_date1|country|holidays|holidaysdiff|
++---+----------+----------+-------+------------+------------+--------+------------+------------+-------+--------+------------+
+|1  |26.12.2012|06.01.2013|IN     |2012-12-26  |2013-01-06  |11      |2013-01-06  |2012-12-26  |IN     |3       |8           |
+|2  |05.08.2020|29.10.2020|CN     |2020-08-05  |2020-10-29  |85      |2020-10-29  |2020-08-05  |CN     |1       |84          |
++---+----------+----------+-------+------------+------------+--------+------------+------------+-------+--------+------------+
+
++---+----------+----------+-------+--------+--------+------------+
+|id |date1     |date2     |country|daysdiff|holidays|holidaysdiff|
++---+----------+----------+-------+--------+--------+------------+
+|1  |26.12.2012|06.01.2013|IN     |11      |3       |8           |
+|2  |05.08.2020|29.10.2020|CN     |85      |1       |84          |
++---+----------+----------+-------+--------+--------+------------+

@@ -1,0 +1,2 @@
+{"name":"Michael", "schools":[{"marks":[{"english": 67.5 , "maths": 37.9}], "sname":"stanford", "year":2010}, {"sname":"berkeley" ,"year":2012 ,"marks":[{"english": 67.5 , "maths": 37.9}]}]}
+{"schools":[{"marks":[{"english": 78.6 , "maths": 91.2}], "sname":"ucsb", "year":2011}], "name":"Andy"}

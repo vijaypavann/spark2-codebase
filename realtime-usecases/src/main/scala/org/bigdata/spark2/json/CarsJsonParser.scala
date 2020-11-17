@@ -1,6 +1,7 @@
 package org.bigdata.spark2.json
 
-import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.{ArrayType, LongType, Metadata, StringType, StructField, StructType}
+import org.apache.spark.sql.{Dataset, Row}
 import org.bigdata.spark2.util.InitSpark
 
 case class PersonCar(name: String, age: Long, car_model: String)
@@ -8,7 +9,7 @@ case class PersonCar(name: String, age: Long, car_model: String)
 object CarsJsonParser extends InitSpark {
 
   import  spark.implicits._
-
+  val NULLS_EXPECTED: Boolean = true
   private  def getFieldIndex(name: String, row: Row): Int = {
     row.fieldIndex(name)
   }
@@ -21,27 +22,46 @@ object CarsJsonParser extends InitSpark {
     row.getLong(getFieldIndex("age", row))
   }
 
-  def main(args: Array[String]): Unit = {
-    val jsonPath = "realtime-usecases/src/main/resources/json/nested/cars/cars.json"
-    val personCarsDF = spark.read.option("multiline","true").json(jsonPath)
+  def parseData(personCarsDF: Dataset[Row]): Unit = {
 
-    // getName(row) + getAge(row)
-    personCarsDF.flatMap(row =>  {
-      // row.getStruct(row.fieldIndex("cars"))
+    val formattedDs = personCarsDF.flatMap(row =>  {
       val carsRow = row.getSeq[Row](row.fieldIndex("cars"))
       carsRow.flatMap(car => {
         val brand = car.getString(1)
-        var models = car.getSeq[String](0)
-        // Seq(PersonCar(getName(row), getAge(row), brand+"--"))
-        var personCarList: Seq[PersonCar] = Seq()
-        models.foreach(model => {
-          personCarList = personCarList :+ PersonCar(getName(row), getAge(row), brand+"--"+model)
-        } )
-        personCarList
+        val models = car.getSeq[String](0)
+        // var personCarList: Seq[PersonCar] = Seq()
+        models.map(model => {
+          // personCarList = personCarList :+
+            PersonCar(getName(row), getAge(row), brand+"--"+model)
+        })
+        //personCarList
       })
-      // carsRow.mkString(",")
-    } ).show(false)
+    })
+    formattedDs.show(false)
+    formattedDs.printSchema()
+    // formattedDs.write.partitionBy("age").parquet("personcars-dataset")
+  }
 
-    // personCarsDF.show(false)
+  def main(args: Array[String]): Unit = {
+
+    val jsonPath = "realtime-usecases/src/main/resources/json/nested/cars/cars.json"
+
+    val models: StructField = StructField("models", ArrayType(StringType, NULLS_EXPECTED), NULLS_EXPECTED, Metadata.empty)
+    val carType: StructType = new StructType().add(models)
+      .add(StructField("name", StringType, NULLS_EXPECTED, Metadata.empty))
+    val cars: StructField = StructField("cars", ArrayType(carType, NULLS_EXPECTED), NULLS_EXPECTED, Metadata.empty)
+
+    val schema: StructType = new StructType()
+      .add(StructField("name", StringType, NULLS_EXPECTED, Metadata.empty))
+      .add(StructField("age", LongType, NULLS_EXPECTED, Metadata.empty))
+      .add(cars)
+
+    val personCarsDF = spark.read.schema(schema).option("multiline","true").json(jsonPath)
+
+    personCarsDF.show(false)
+    personCarsDF.printSchema()
+    //println(personCarsDF.schema)
+    parseData(personCarsDF)
+    // row.getStruct(row.fieldIndex("cars"))
   }
 }

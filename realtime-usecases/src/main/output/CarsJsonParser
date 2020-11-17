@@ -1,0 +1,35 @@
+#For Each Person get his car
++-----+---+------------------------------------------------------------------------------+
+|name |age|cars                                                                          |
++-----+---+------------------------------------------------------------------------------+
+|John |30 |[[[Fiesta, Focus, Mustang], Ford], [[320, X3, X5], BMW], [[500, Panda], Fiat]]|
+|Pavan|29 |[[[i20], Hyundai]]                                                            |
++-----+---+------------------------------------------------------------------------------+
+
+root
+ |-- name: string (nullable = true)
+ |-- age: long (nullable = true)
+ |-- cars: array (nullable = true)
+ |    |-- element: struct (containsNull = true)
+ |    |    |-- models: array (nullable = true)
+ |    |    |    |-- element: string (containsNull = true)
+ |    |    |-- name: string (nullable = true)
+
++-----+---+-------------+
+|name |age|car_model    |
++-----+---+-------------+
+|John |30 |Ford--Fiesta |
+|John |30 |Ford--Focus  |
+|John |30 |Ford--Mustang|
+|John |30 |BMW--320     |
+|John |30 |BMW--X3      |
+|John |30 |BMW--X5      |
+|John |30 |Fiat--500    |
+|John |30 |Fiat--Panda  |
+|Pavan|29 |Hyundai--i20 |
++-----+---+-------------+
+
+root
+ |-- name: string (nullable = true)
+ |-- age: long (nullable = false)
+ |-- car_model: string (nullable = true)

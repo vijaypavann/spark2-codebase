@@ -1,4 +1,4 @@
-package org.bigdata.spark2.util
+package util
 
 import org.apache.log4j.{Level, LogManager, Logger}
 import org.apache.spark.sql.{DataFrameReader, SparkSession}

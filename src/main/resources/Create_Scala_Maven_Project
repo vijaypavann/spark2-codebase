@@ -1,0 +1,96 @@
+# Creating a new Scala Project using maven.
+
+1. Enter Command:- mvn archetype:generate
+
+2. Filter by typing "scala", select "net.alchim31.maven:scala-archetype-simple" (Option: 7/11)
+   The maven-scala-plugin is used for compiling/testing/running/documenting scala code in maven
+
+3. Choose version :- 1.6 (3), enter values for "groupId", "artifactId", at end press "Y"
+    It creates a build
+
+4. When it’s done, you should see a new folder named with the artifactId. cd into it, 
+    remove <arg>-make:transitive</arg> under scala-maven-plugin in plugins section.
+	add the following test dependency for JunitRunner
+		<dependency>
+			<groupId>org.specs2</groupId>
+			<artifactId>specs2-junit_${scala.compat.version}</artifactId>
+			<version>2.4.16</version>
+			<scope>test</scope>
+		</dependency>
+		
+    and then, mvn package
+    
+5. If you want to mix Scala and Java source code, simply add a java folder inside main or test.
+   target includes generated/built files, such as .class and .jar files.
+  
+6. Creating a Jar:- 
+   By default the jar created by the Scala Maven Plugin doesn’t include a Main-Class attribute in the manifest.
+   We have to add the Maven Assembly Plugin under plugins to pom.xml in order to specify custom attributes in the manifest. 
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-assembly-plugin</artifactId>
+			<version>2.4</version>
+			<configuration>
+				<descriptorRefs>
+					<descriptorRef>jar-with-dependencies</descriptorRef>
+				</descriptorRefs>
+				<archive>
+					<manifest>
+						<mainClass>com.your-package.MainClass</mainClass>
+					</manifest>
+				</archive>
+			</configuration>
+			<executions>
+				<execution>
+					<phase>package</phase>
+					<goals>
+						<goal>single</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+
+7. After adding this, mvn package will also create [artifactId]-[version]-jar-with-dependencies.jar under target. 
+	Note: this     will also copy the Scala library into your Jar. This is normal. 
+	Be careful that your dependencies use the same version of Scala, or you will quickly end up with a massive Jar.
+
+8. Useful commands
+	mvn dependency:copy-dependencies: copy all libraries and dependencies to the target/dependency folder
+	mvn clean
+	mvn package: compile, run tests, and create jar
+	
+9. Integration with Scala IDE
+   The maven-eclipse-plugin is a core plugin (all plugins prefixed with “maven” are, 
+   and are available by default) to generate Eclipse configuration files. 
+   However, this plugin does not know about our new Scala source files. We’ll be using the 
+   build-helper-maven-plugin to add new source folders:	
+   
+10. After adding that to your pom.xml:
+
+	Run mvn eclipse:eclipse - this generates the Eclipse project files (which are already ignored by our archetype’s .gitignore)
+	Run mvn package -Declipse.workspace="path/to/your/eclipse/workspace" eclipse:configure-workspace 
+	- this adds an M2_REPO classpath variable to Eclipse, package ensures you have all the dependencies in your local Maven repo   
+ 
+11.  Unfortunately, the integration isn’t perfect. Firstly, open up the generated .classpath file (it will be hidden by
+    default as it’s a dotfile, but it should be in your project root directory; where you ran mvn eclipse:eclipse).
+	You should see something like this near the top.
+
+	<classpathentry kind="src" path="src/test/scala" output="target/test-classes" including="**/*.java"/>
+	<classpathentry kind="src" path="src/main/scala" including="**/*.java"/>
+	
+	Change the *.java to *.scala (or duplicate the lines and change them to *.scala if you also have Java sources).
+
+	Secondly, open the .project eclipse file (again, in the same folder). Change <buildSpec> and <natures> to look like this.
+	Now Eclipse knows to use the Scala editor and it won’t think that everything is a syntax error.
+
+	<buildSpec>
+	  <buildCommand>
+		<name>org.scala-ide.sdt.core.scalabuilder</name>
+	  </buildCommand>
+	</buildSpec>
+	<natures>
+	  <nature>org.scala-ide.sdt.core.scalanature</nature>
+	  <nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	
+	Finally, in Eclipse, under “File” choose “Import…” and find your project.
